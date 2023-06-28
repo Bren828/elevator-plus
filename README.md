@@ -121,9 +121,9 @@ public OnGameModeInit()
 
 #define ELEVATOR_DIALOG_ID                      27303
 
-#define ELEVATOR_CABIN_TEXT                     "{65cd38}~k~~SNEAK_ABOUT~"
+#define ELEVATOR_CABIN_TEXT                     "{CCCCCC}~k~~SNEAK_ABOUT~"
 
-#define ELEVATOR_FLOOR_TEXT                     "Call the elevator\n{65cd38}~k~~SNEAK_ABOUT~{FFFFFF}"
+#define ELEVATOR_FLOOR_TEXT                     "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}"
 
 #define ELEVATOR_FLOOR_IN_DIALOG_TEXT           "Floor %d"
 

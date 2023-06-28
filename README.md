@@ -2,6 +2,9 @@
 
 Creating an elevator in 5 minutes in SAMP
 
+![Crosshair](https://raw.githubusercontent.com/Bren828/elevator-plus/main/preview.png)
+
+
 ## Main features
 * Digital display
 * Call queue

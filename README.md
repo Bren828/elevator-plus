@@ -1,6 +1,6 @@
 # Elevator Plus
 
-Text
+Creating an elevator in 5 minutes in SAMP
 
 ## Main features
 * 0

@@ -3,8 +3,9 @@
 Creating an elevator in 5 minutes in SAMP
 
 ## Main features
-* 0
-* 1
+* Digital display
+* Call queue
+* Compatibility `mdialog`, `y_hooks`
 
 ## Reference
 * [Installation](https://github.com/Bren828/elevator-plus#installation)

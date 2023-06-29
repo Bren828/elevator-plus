@@ -5,9 +5,9 @@
 *   ---------------------------------------------------
 *
 *	Creater - @Bren828 					
-*									29 June 2023
+*									30 June 2023
 *
-*   Version: 1.0
+*   Version: 1.01
 *
 *   ---------------------------------------------------
 *
@@ -48,7 +48,7 @@
 *   floor - Floor number
 *
 *
-*Get the elevator object id
+* Get the elevator object id
 *   GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
 *
 *   elevator_name[] - Elevator name
@@ -71,9 +71,25 @@
 *   Note - CreateDynamicObject is used
 *
 *
+* Called when moving to a floor
+*   OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
+*
+*   elevator_name[] - Elevator name
+*   old_floor - Old floor
+*   new_floor - New floor
+*
+*
+* Called when the elevator arrives
+*   OnElevatorArrivedFloor(const elevator_name[], floor)
+*
+*   elevator_name[] - Elevator name
+*   floor - Floor number
+*
+*
 *
 *
 */
+
 
 #if defined _elevator_included 
 	#endinput
@@ -819,7 +835,7 @@ static stock RemoveFirstQueueFloor(elevatorid)
 
             if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_CLOSED && elevator[elevatorid][eNextFloor] != -1)
             {
-                //the elevator arrived
+                // the elevator arrived
 
                 elevator[elevatorid][eMoveDelay] = GetTickCount() + 2000;  
                 elevator[elevatorid][eFloor] = elevator[elevatorid][eNextFloor];
@@ -836,13 +852,16 @@ static stock RemoveFirstQueueFloor(elevatorid)
                         break;
                     }
                 }
+                #if defined OnElevatorArrivedFloor
+                    OnElevatorArrivedFloor(elevator[elevatorid][eElevatorName], elevator[elevatorid][eFloor]);
+                #endif
             }
             else if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_CLOSING)
             {
                 elevator[elevatorid][eDoorStatus] = ELEVATOR_DOOR_CLOSED;
                 if(elevator[elevatorid][eNextFloor] != -1) 
                 {
-                    //We send the elevator
+                    // We send the elevator
 
                     elevator[elevatorid][eMoveDelay] = GetTickCount() + 2000;
                 }
@@ -941,6 +960,10 @@ public on_elevator_time()
             else 
             {
                 ElevatorMoveToFloor(elevatorid, elevator[elevatorid][eNextFloor]);
+
+                #if defined OnElevatorMoveToFloor
+                    OnElevatorMoveToFloor(elevator[elevatorid][eElevatorName], elevator[elevatorid][eFloor], elevator[elevatorid][eNextFloor]);
+                #endif
             }
         }
         else if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_OPEN && elevator[elevatorid][eClosingTime] != 0 && elevator[elevatorid][eClosingTime] <= GetTickCount())

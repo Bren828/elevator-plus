@@ -104,13 +104,13 @@ public OnGameModeInit()
 
 ## Callbacks
 
-#### OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
+#### public OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
 > Called when moving to a floor
 > * `elevator_name[]` - Elevator name
 > * `old_floor` - Old floor
 > * `new_floor` - New floor
 
-#### OnElevatorArrivedFloor(const elevator_name[], floor)
+#### public OnElevatorArrivedFloor(const elevator_name[], floor)
 > Called when the elevator arrives
 > * `elevator_name[]` - Elevator name
 > * `floor` - Floor number

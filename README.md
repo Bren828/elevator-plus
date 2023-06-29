@@ -14,6 +14,7 @@ Creating an elevator in 5 minutes in SAMP
 * [Installation](https://github.com/Bren828/elevator-plus#installation)
 * [Example](https://github.com/Bren828/elevator-plus#example)
 * [Functions](https://github.com/Bren828/elevator-plus#functions)
+* [Callbacks](https://github.com/Bren828/elevator-plus#callbacks)
 * [Definition](https://github.com/Bren828/elevator-plus#definition)
 
 
@@ -100,6 +101,20 @@ public OnGameModeInit()
 > * `&doorL_id` - Left door id
 > * `&doorR_id` - Right door id
 > * `Note` - **CreateDynamicObject is used**
+
+## Callbacks
+
+#### OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
+> Called when moving to a floor
+> * `elevator_name[]` - Elevator name
+> * `old_floor` - Old floor
+> * `new_floor` - New floor
+
+#### OnElevatorArrivedFloor(const elevator_name[], floor)
+> Called when the elevator arrives
+> * `elevator_name[]` - Elevator name
+> * `floor` - Floor number
+
 
 ## Definition
 

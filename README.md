@@ -139,18 +139,18 @@ public OnGameModeInit()
 
 #define ELEVATOR_DIALOG_ID                      27303
 
-#define ELEVATOR_CABIN_TEXT                     "{CCCCCC}~k~~SNEAK_ABOUT~"
+static ELEVATOR_CABIN_TEXT[] =                  "{CCCCCC}~k~~SNEAK_ABOUT~";
 
-#define ELEVATOR_FLOOR_TEXT                     "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}"
+static ELEVATOR_FLOOR_TEXT[] =                  "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}";
 
-#define ELEVATOR_FLOOR_IN_DIALOG_TEXT           "Floor %d"
+static ELEVATOR_FLOOR_IN_DIALOG_TEXT[] =        "Floor %d";
 
-#define ELEVATOR_TEXT_COMING_TO_YOU             "{AFAFAF}Already coming to you"
+static ELEVATOR_TEXT_COMING_TO_YOU[] =          "{AFAFAF}Already coming to you";
 
-#define ELEVATOR_TEXT_ALREADY_IN_QUEUE          "{AFAFAF}The floor is already in the queue"
+static ELEVATOR_TEXT_ALREADY_IN_QUEUE[] =       "{AFAFAF}The floor is already in the queue";
 
-#define ELEVATOR_TEXT_CALLED                    "Elevator called"
+static ELEVATOR_TEXT_CALLED[] =                 "Elevator called";
 
-#define ELEVATOR_FLOOR_COLOR_NOW                "{65cd38}"
+static ELEVATOR_FLOOR_COLOR_NOW[] =             "{65cd38}";
 ```
 

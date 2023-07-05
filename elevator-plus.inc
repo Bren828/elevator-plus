@@ -7,7 +7,7 @@
 *	Creater - @Bren828 					
 *									30 June 2023
 *
-*   Version: 1.01
+*   Version: 1.02
 *
 *   ---------------------------------------------------
 *
@@ -30,61 +30,60 @@
 *
 *
 * Create a floor with a call button
-*   CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
+*    CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
 *
-*   elevator_name[] - Elevator name
-*   Float:x - The x coordinate
-*   Float:y - The y coordinate
-*   Float:z - The z coordinate
-*   Float:door_height - Door height
-*   text_dialog[] - Name in the list of floors
-*   text_digital_display[] - Displays the floor number
+*    * elevator_name[] - Elevator name
+*    * Float:x - The x coordinate
+*    * Float:y - The y coordinate
+*    * Float:z - The z coordinate
+*    * Float:door_height - Door height
+*    * text_dialog[] - Name in the list of floors
+*    * text_digital_display[] - Displays the floor number
 *
 *
 * Move the elevator to a floor
-*   SetElevatorFloor(const elevator_name[], floor)
+*    SetElevatorFloor(const elevator_name[], floor)
 *
-*   elevator_name[] - Elevator name
-*   floor - Floor number
+*    * elevator_name[] - Elevator name
+*    * floor - Floor number
 *
 *
 * Get the elevator object id
-*   GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
+*    GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
 *
-*   elevator_name[] - Elevator name
-*   &cabin_id - Elevator cab id
-*   &doorL_id - Left door id
-*   &doorR_id - Right door id
-*   &digital_display_id - Digital display id
+*    * elevator_name[] - Elevator name
+*    * &cabin_id - Elevator cab id
+*    * &doorL_id - Left door id
+*    * &doorR_id - Right door id
+*    * &digital_display_id - Digital display id
 *
-*   Note - CreateObject is used
+*    Note - CreateObject is used
 *
 *
 * Get the ID of the floor doors object
-*   GetElevatorFloorDoorObjectID(const elevator_name[], floor, &doorL_id, &doorR_id)
+*    GetElevatorFloorDoorObjectID(const elevator_name[], floor, &doorL_id, &doorR_id)
 *
-*   elevator_name[] - Elevator name
-*   floor - Floor number
-*   &doorL_id - Left door id
-*   &doorR_id - Right door id
+*    * elevator_name[] - Elevator name
+*    * floor - Floor number
+*    * &doorL_id - Left door id
+*    * &doorR_id - Right door id
 *
-*   Note - CreateDynamicObject is used
+*    Note - CreateDynamicObject is used
 *
 *
 * Called when moving to a floor
-*   OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
+*    OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
 *
-*   elevator_name[] - Elevator name
-*   old_floor - Old floor
-*   new_floor - New floor
+*    * elevator_name[] - Elevator name
+*    * old_floor - Old floor
+*    * new_floor - New floor
 *
 *
 * Called when the elevator arrives
-*   OnElevatorArrivedFloor(const elevator_name[], floor)
+*    OnElevatorArrivedFloor(const elevator_name[], floor)
 *
-*   elevator_name[] - Elevator name
-*   floor - Floor number
-*
+*    * elevator_name[] - Elevator name
+*    * floor - Floor number
 *
 *
 *
@@ -138,31 +137,31 @@
 #endif
 
 #if !defined ELEVATOR_CABIN_TEXT
-    #define ELEVATOR_CABIN_TEXT                     "{CCCCCC}~k~~SNEAK_ABOUT~"
+    static ELEVATOR_CABIN_TEXT[] = "{CCCCCC}~k~~SNEAK_ABOUT~";
 #endif
 
 #if !defined ELEVATOR_FLOOR_TEXT
-    #define ELEVATOR_FLOOR_TEXT                     "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}"
+    static ELEVATOR_FLOOR_TEXT[] = "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}";
 #endif
 
 #if !defined ELEVATOR_FLOOR_IN_DIALOG_TEXT
-    #define ELEVATOR_FLOOR_IN_DIALOG_TEXT           "Floor %d"
+    static ELEVATOR_FLOOR_IN_DIALOG_TEXT[] = "Floor %d";
 #endif
 
 #if !defined ELEVATOR_TEXT_COMING_TO_YOU
-    #define ELEVATOR_TEXT_COMING_TO_YOU             "{AFAFAF}Already coming to you"
+    static ELEVATOR_TEXT_COMING_TO_YOU[] =  "{AFAFAF}Already coming to you";
 #endif
 
 #if !defined ELEVATOR_TEXT_ALREADY_IN_QUEUE
-    #define ELEVATOR_TEXT_ALREADY_IN_QUEUE          "{AFAFAF}The floor is already in the queue"
+    static ELEVATOR_TEXT_ALREADY_IN_QUEUE[] = "{AFAFAF}The floor is already in the queue";
 #endif
 
 #if !defined ELEVATOR_TEXT_CALLED
-    #define ELEVATOR_TEXT_CALLED                    "Elevator called"
+    static ELEVATOR_TEXT_CALLED[] = "Elevator called";
 #endif
 
 #if !defined ELEVATOR_FLOOR_COLOR_NOW
-    #define ELEVATOR_FLOOR_COLOR_NOW                "{65cd38}"
+    static ELEVATOR_FLOOR_COLOR_NOW[] = "{65cd38}";
 #endif
 
 

@@ -129,13 +129,13 @@ public OnGameModeInit()
 
 #define ELEVATOR_SPEED                          3.0 // movement speed of the elevator
 
-#define ELEVATOR_UPDATE_TIMER                   900 // updating the digital display, door status
+#define ELEVATOR_UPDATE_TIMER                   900
 
 #define ELEVATOR_DOOR_CLOSING_TIME              8000 // milliseconds
 
 #define ELEVATOR_OBJECT_DISTANCE                100.0
 
-#define ELEVATOR_ENABLE_DIGITAL_DISPLAY         true
+#define ELEVATOR_ENABLE_DIGITAL_DISPLAY
 
 #define ELEVATOR_DIALOG_ID                      27303
 

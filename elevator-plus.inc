@@ -5,86 +5,14 @@
 *   ---------------------------------------------------
 *
 *	Creater - @Bren828 					
-*									6 July 2023
+*									15 February 2024
 *
-*   Version: 1.02
+*   Version: 1.1
 *
 *   ---------------------------------------------------
 *
 *
 *	https://github.com/Bren828/elevator-plus
-*
-*
-*
-*
-* Create an elevator
-*    CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
-*
-*    * elevator_name[] - Elevator name
-*    * Float:x - The x coordinate to create the object
-*    * Float:y - The y coordinate to create the object
-*    * Float:z - The z coordinate to create the object
-*    * Float:rx - The rx rotation of the object
-*    * Float:ry - The ry rotation of the object
-*    * Float:rz - The rz rotation of the object
-*
-*
-* Create a floor with a call button
-*    CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
-*
-*    * elevator_name[] - Elevator name
-*    * Float:x - The x coordinate
-*    * Float:y - The y coordinate
-*    * Float:z - The z coordinate
-*    * Float:door_height - Door height
-*    * text_dialog[] - Name in the list of floors
-*    * text_digital_display[] - Displays the floor number
-*
-*
-* Move the elevator to a floor
-*    SetElevatorFloor(const elevator_name[], floor)
-*
-*    * elevator_name[] - Elevator name
-*    * floor - Floor number
-*
-*
-* Get the elevator object id
-*    GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
-*
-*    * elevator_name[] - Elevator name
-*    * &cabin_id - Elevator cab id
-*    * &doorL_id - Left door id
-*    * &doorR_id - Right door id
-*    * &digital_display_id - Digital display id
-*
-*    Note - CreateObject is used
-*
-*
-* Get the ID of the floor doors object
-*    GetElevatorFloorDoorObjectID(const elevator_name[], floor, &doorL_id, &doorR_id)
-*
-*    * elevator_name[] - Elevator name
-*    * floor - Floor number
-*    * &doorL_id - Left door id
-*    * &doorR_id - Right door id
-*
-*    Note - CreateDynamicObject is used
-*
-*
-* Called when moving to a floor
-*    OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
-*
-*    * elevator_name[] - Elevator name
-*    * old_floor - Old floor
-*    * new_floor - New floor
-*
-*
-* Called when the elevator arrives
-*    OnElevatorArrivedFloor(const elevator_name[], floor)
-*
-*    * elevator_name[] - Elevator name
-*    * floor - Floor number
-*
 *
 *
 */
@@ -117,7 +45,7 @@
 #endif
 
 #if !defined ELEVATOR_UPDATE_TIMER
-    #define ELEVATOR_UPDATE_TIMER                   900 // updating the digital display, door status
+    #define ELEVATOR_UPDATE_TIMER                   900 
 #endif
 
 #if !defined ELEVATOR_DOOR_CLOSING_TIME
@@ -129,12 +57,13 @@
 #endif
 
 #if !defined ELEVATOR_ENABLE_DIGITAL_DISPLAY
-    #define ELEVATOR_ENABLE_DIGITAL_DISPLAY         true
+    #define ELEVATOR_ENABLE_DIGITAL_DISPLAY
 #endif
 
 #if !defined ELEVATOR_DIALOG_ID
     #define ELEVATOR_DIALOG_ID                      27303
 #endif
+
 
 #if !defined ELEVATOR_CABIN_TEXT
     static ELEVATOR_CABIN_TEXT[] = "{CCCCCC}~k~~SNEAK_ABOUT~";
@@ -223,14 +152,21 @@ enum ELEVATOR_EN
     eMoveDelay,
     eTotalObjectUpdatesFloor,
 
-    eFloorQueue[ELEVATOR_MAX_FLOORS]
+    eFloorQueue[ELEVATOR_MAX_FLOORS],
+    eTimer
 }
 
+
 static elevator[ELEVATOR_MAX_ELEVATOR][ELEVATOR_EN];
+
 static elevator_text_dialog[ELEVATOR_MAX_ELEVATOR][ELEVATOR_MAX_FLOORS][ELEVATOR_MAX_NAME_LENGTH];
+
 static elevator_text_digital_display[ELEVATOR_MAX_ELEVATOR][ELEVATOR_MAX_FLOORS][ELEVATOR_MAX_NAME_LENGTH];
+
 static max_elevator;
+
 static player_elevator_id[MAX_PLAYERS];
+
 
 enum (<<=1)
 {
@@ -240,47 +176,47 @@ enum (<<=1)
     ELEVATOR_DOOR_OPENS = 3
 }
 
+
 stock CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
 {
-    if(max_elevator >= ELEVATOR_MAX_ELEVATOR) return print("elevator --->>> | CreateElevator | not all elevators were created! | increase the value '#define ELEVATOR_MAX_ELEVATOR'") & 0;
+    if(max_elevator >= ELEVATOR_MAX_ELEVATOR) 
+        return print("elevator --->>> | CreateElevator | not all elevators were created! | increase the value '#define ELEVATOR_MAX_ELEVATOR'") & 0;
+
 
     elevator[max_elevator][eCreate] = true;
     format(elevator[max_elevator][eElevatorName], ELEVATOR_MAX_NAME_LENGTH, elevator_name);
 
     elevator[max_elevator][eCabinObject] = CreateObject(18755, x, y, z-0.06, rx, ry, rz, ELEVATOR_OBJECT_DISTANCE);
 
-    #if ELEVATOR_ENABLE_DIGITAL_DISPLAY 
+
+    #if defined ELEVATOR_ENABLE_DIGITAL_DISPLAY 
         SetObjectMaterial(elevator[max_elevator][eCabinObject], 4, -1, "none", "none", 0xFF000000);
 
         elevator[max_elevator][eCabinDigitalDisplayObject] = CreateObject(19476, x, y, z, 0.0, 0.0, 0.0, 10.0);
         AttachObjectToObject(elevator[max_elevator][eCabinDigitalDisplayObject], elevator[max_elevator][eCabinObject], -1.75, 0.0, 1.175, 0.0, 0.0, 0.0);
     #endif
   
+
     new Float:xoff,
         Float:yoff,
         Float:zoff,
-        Float:door_x,
-        Float:door_y,
         Float:door_z,
-        Float:r_rz
-    ;
+        Float:r_rz ;
 
     //DoorL
     xoff = 0.0, 
     yoff = 0.01, //1.6 - open
     zoff = 0.0;
     r_rz = 360 - rz;
-    door_x = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
-    door_y = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
+    elevator[max_elevator][eDoorLClosed_X] = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
+    elevator[max_elevator][eDoorLClosed_Y] = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
     door_z = zoff + z;
 
-    elevator[max_elevator][eDoorLClosed_X] = door_x;
-    elevator[max_elevator][eDoorLClosed_Y] = door_y;
     elevator[max_elevator][eDoor_rx] = rx;
     elevator[max_elevator][eDoor_ry] = ry;
     elevator[max_elevator][eDoor_rz] = rz;
 
-    elevator[max_elevator][eDoorLObject] = CreateObject(18757, door_x, door_y, door_z, rx, ry, rz, ELEVATOR_OBJECT_DISTANCE);
+    elevator[max_elevator][eDoorLObject] = CreateObject(18757, elevator[max_elevator][eDoorLClosed_X], elevator[max_elevator][eDoorLClosed_Y], door_z, rx, ry, rz, ELEVATOR_OBJECT_DISTANCE);
 
     //DoorL open
     yoff = 1.6;
@@ -293,12 +229,10 @@ stock CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx,
     xoff = 0.0, 
     yoff = 0.01, //-1.6 - open
     zoff = 0.0;
-    door_x = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
-    door_y = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
+    elevator[max_elevator][eDoorRClosed_X] = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
+    elevator[max_elevator][eDoorRClosed_Y] = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
     door_z = zoff + z;
-    elevator[max_elevator][eDoorRObject] = CreateObject(18756, door_x, door_y, door_z, rx, ry, rz, ELEVATOR_OBJECT_DISTANCE);
-    elevator[max_elevator][eDoorRClosed_X] = door_x;
-    elevator[max_elevator][eDoorRClosed_Y] = door_y;
+    elevator[max_elevator][eDoorRObject] = CreateObject(18756, elevator[max_elevator][eDoorRClosed_X], elevator[max_elevator][eDoorRClosed_Y], door_z, rx, ry, rz, ELEVATOR_OBJECT_DISTANCE);
 
     //DoorR open
     yoff = -1.6;
@@ -311,33 +245,24 @@ stock CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx,
     xoff = -1.6, 
     yoff = -1.85, 
     zoff = -0.5;
-    door_x = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
-    door_y = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
-    door_z = zoff + z;
+    elevator[max_elevator][Text3DCabin_x] = floatsin(r_rz, degrees) * yoff + floatcos(r_rz, degrees) * xoff + x;
+    elevator[max_elevator][Text3DCabin_y] = floatcos(r_rz, degrees) * yoff - floatsin(r_rz, degrees) * xoff + y;
+    elevator[max_elevator][Text3DCabin_z] = zoff + z;
 
-    elevator[max_elevator][Text3DCabin_x] = door_x;
-    elevator[max_elevator][Text3DCabin_y] = door_y;
-    elevator[max_elevator][Text3DCabin_z] = door_z;
     elevator[max_elevator][eText3DCabin] = Text3D:INVALID_3DTEXT_ID;
-
     elevator[max_elevator][eDoorStatus] = ELEVATOR_DOOR_CLOSED;
     elevator[max_elevator][eMaxFloor] = 0;
     elevator[max_elevator][eFloor] = 0;
     elevator[max_elevator][eCurrentFloor] = 0;
     elevator[max_elevator][eClosingTime] = 0;
     elevator[max_elevator][eNextFloor] = -1;
+    elevator[max_elevator][eTimer] = 0;
 
-    if(max_elevator == 0) 
-    {
-        #if ELEVATOR_ENABLE_DIGITAL_DISPLAY
-            SetTimer("on_elevator_time", ELEVATOR_UPDATE_TIMER, true);
-        #else
-            SetTimer("on_elevator_time", 1000, true);
-        #endif
-    }
     max_elevator ++;
     return 1;
 }
+
+
 
 stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
 {
@@ -345,13 +270,16 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
         max_floor,
         Float:xoff,
         Float:yoff,
-        Float:rz
-    ;
+        Float:rz;
 
     for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
     {
-        if(elevator[elevatorid][eCreate] == false) continue;
-        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) continue;
+        if(elevator[elevatorid][eCreate] == false) 
+            continue;
+
+        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) 
+            continue;
+
         slot = elevatorid;
         max_floor = elevator[elevatorid][eMaxFloor];
 
@@ -359,6 +287,7 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
         elevator[elevatorid][eFloor_X][max_floor] = x;
         elevator[elevatorid][eFloor_Y][max_floor] = y;
         elevator[elevatorid][eFloor_Z][max_floor] = z;
+
 
         if(strlen(text_dialog) >= 1) format(elevator_text_dialog[elevatorid][max_floor], ELEVATOR_MAX_NAME_LENGTH, text_dialog);
         else format(elevator_text_dialog[elevatorid][max_floor], ELEVATOR_MAX_NAME_LENGTH, ELEVATOR_FLOOR_IN_DIALOG_TEXT, max_floor+1);
@@ -368,6 +297,7 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
 
         elevator[elevatorid][eFloorText3D][max_floor] = CreateDynamic3DTextLabel(ELEVATOR_FLOOR_TEXT, -1, x, y, z, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, 1, -1, -1, -1, 10.0);
        
+
         //DoorL Closed
         x = elevator[elevatorid][eDoorLClosed_X];
         y = elevator[elevatorid][eDoorLClosed_Y];
@@ -378,15 +308,18 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
         x = floatsin(rz, degrees) * yoff + floatcos(rz, degrees) * xoff + x;
         y = floatcos(rz, degrees) * yoff - floatsin(rz, degrees) * xoff + y;
         elevator[elevatorid][eFloorDoorLObject][max_floor] = CreateDynamicObject(18757, x, y, z+door_height+0.94, elevator[elevatorid][eDoor_rx], elevator[elevatorid][eDoor_ry], elevator[elevatorid][eDoor_rz], -1, -1, -1, ELEVATOR_OBJECT_DISTANCE, ELEVATOR_OBJECT_DISTANCE);
+        
         elevator[elevatorid][eFloorDoorLClosed_X][max_floor] = x;
         elevator[elevatorid][eFloorDoorLClosed_Y][max_floor] = y;
         elevator[elevatorid][eFloorDoorHeight][max_floor] = door_height+0.94;
+
 
         //DoorL Open
         x = elevator[elevatorid][eDoorLClosed_X];
         y = elevator[elevatorid][eDoorLClosed_Y];
         xoff = -0.29, 
         yoff = 1.6, 
+
         x = floatsin(rz, degrees) * yoff + floatcos(rz, degrees) * xoff + x;
         y = floatcos(rz, degrees) * yoff - floatsin(rz, degrees) * xoff + y;
         elevator[elevatorid][eFloorDoorLOpen_X][max_floor] = x;
@@ -405,6 +338,7 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
         elevator[elevatorid][eFloorDoorRObject][max_floor] = CreateDynamicObject(18756, x, y, z+door_height+0.94, elevator[elevatorid][eDoor_rx], elevator[elevatorid][eDoor_ry], elevator[elevatorid][eDoor_rz], -1, -1, -1, ELEVATOR_OBJECT_DISTANCE, ELEVATOR_OBJECT_DISTANCE);
         elevator[elevatorid][eFloorDoorRClosed_X][max_floor] = x;
         elevator[elevatorid][eFloorDoorRClosed_Y][max_floor] = y;
+
 
         //DoorR Open
         x = elevator[elevatorid][eDoorLClosed_X];
@@ -425,8 +359,8 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
     {
         new Float:X, 
             Float:Y, 
-            Float:Z
-        ;
+            Float:Z;
+
         elevator[slot][eFloor] = 0;
         elevator[slot][eCurrentFloor] = 0;
         elevator[slot][Text3DCabin_z] = elevator[slot][eFloor_Z][0]+elevator[slot][eFloorDoorHeight][0];
@@ -442,29 +376,39 @@ stock CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Floa
         
         elevator[slot][eText3DCabin] = CreateDynamic3DTextLabel(ELEVATOR_CABIN_TEXT, -1, elevator[slot][Text3DCabin_x], elevator[slot][Text3DCabin_y], elevator[slot][Text3DCabin_z]-0.5, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, 1, -1, -1, -1, 10.0);
 
-        #if ELEVATOR_ENABLE_DIGITAL_DISPLAY
+        #if defined ELEVATOR_ENABLE_DIGITAL_DISPLAY
             SetObjectMaterialText(elevator[slot][eCabinDigitalDisplayObject], elevator_text_digital_display[slot][0], 0, 80, "Arial Black", 60, 1, 0xFFFFFFFF, 0x00000000, 1);
         #endif
     }
     return 1;
 }
 
+
 stock SetElevatorFloor(const elevator_name[], floor)
 {
-    if(max_elevator == 0 || floor < 0 || floor >= ELEVATOR_MAX_FLOORS) return 0;
+    if(max_elevator == 0 || floor < 0 || floor >= ELEVATOR_MAX_FLOORS) 
+        return 0;
+
     new Float:X, 
         Float:Y, 
-        Float:Z
-    ;
+        Float:Z;
+
     for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
     {
-        if(elevator[elevatorid][eCreate] == false) continue;
-        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) continue;
-        if(elevator[elevatorid][eMaxFloor] == 0 || floor >= elevator[elevatorid][eMaxFloor] || floor == elevator[elevatorid][eFloor]) break;
+        if(elevator[elevatorid][eCreate] == false) 
+            continue;
+
+        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) 
+            continue;
+
+        if(elevator[elevatorid][eMaxFloor] == 0 || floor >= elevator[elevatorid][eMaxFloor] || floor == elevator[elevatorid][eFloor]) 
+            break;
         
+
         elevator[elevatorid][eFloor] = floor;
         elevator[elevatorid][eCurrentFloor] = floor;
         elevator[elevatorid][Text3DCabin_z] = elevator[elevatorid][eFloor_Z][floor]+elevator[elevatorid][eFloorDoorHeight][floor];
+
 
         GetObjectPos(elevator[elevatorid][eCabinObject], X, Y, Z);
         SetObjectPos(elevator[elevatorid][eCabinObject], X, Y, elevator[elevatorid][Text3DCabin_z]-0.06);
@@ -475,11 +419,15 @@ stock SetElevatorFloor(const elevator_name[], floor)
         GetObjectPos(elevator[elevatorid][eDoorRObject], X, Y, Z);
         SetObjectPos(elevator[elevatorid][eDoorRObject], X, Y, elevator[elevatorid][Text3DCabin_z]);
         
+
         DestroyDynamic3DTextLabel(elevator[elevatorid][eText3DCabin]);
         elevator[elevatorid][eText3DCabin] = CreateDynamic3DTextLabel(ELEVATOR_CABIN_TEXT, -1, elevator[elevatorid][Text3DCabin_x], elevator[elevatorid][Text3DCabin_y], elevator[elevatorid][Text3DCabin_z]-0.5, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, 1, -1, -1, -1, 10.0);
         
-        #if ELEVATOR_ENABLE_DIGITAL_DISPLAY
+
+        #if defined ELEVATOR_ENABLE_DIGITAL_DISPLAY
+
             elevator[elevatorid][eTotalObjectUpdatesFloor] ++; 
+
             if(elevator[elevatorid][eTotalObjectUpdatesFloor] >= 6) // FIXED: Text does not update after 16 calls against the same object.
             {
                 GetObjectPos(elevator[elevatorid][eCabinObject], X, Y, Z);
@@ -490,53 +438,69 @@ stock SetElevatorFloor(const elevator_name[], floor)
             }
 
             SetObjectMaterialText(elevator[elevatorid][eCabinDigitalDisplayObject], elevator_text_digital_display[elevatorid][floor], 0, 80, "Arial Black", 60, 1, 0xFFFFFFFF, 0x00000000, 1);    
+        
         #endif
         return 1;
     }
     return 0;
 }
 
+
 stock GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
 {
-    if(max_elevator == 0) return 0;
+    if(max_elevator == 0) 
+        return 0;
 
     for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
     {
-        if(elevator[elevatorid][eCreate] == false) continue;
-        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) continue;
+        if(elevator[elevatorid][eCreate] == false) 
+            continue;
+
+        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) 
+            continue;
 
         cabin_id = elevator[elevatorid][eCabinObject];
         digital_display_id = elevator[elevatorid][eCabinDigitalDisplayObject];
+
         doorL_id = elevator[elevatorid][eDoorLObject];
         doorR_id = elevator[elevatorid][eDoorRObject];
+
         return 1;
     }
     return 0;
 }
+
 
 stock GetElevatorFloorDoorObjectID(const elevator_name[], floor, &doorL_id, &doorR_id)
 {
-    if(max_elevator == 0 || floor < 0 || floor >= ELEVATOR_MAX_FLOORS) return 0;
+    if(max_elevator == 0 || floor < 0 || floor >= ELEVATOR_MAX_FLOORS) 
+        return 0;
 
     for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
     {
-        if(elevator[elevatorid][eCreate] == false) continue;
-        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) continue;
-        if(floor >= elevator[elevatorid][eMaxFloor]) return 1;
+        if(elevator[elevatorid][eCreate] == false) 
+            continue;
+
+        if(strcmp(elevator_name, elevator[elevatorid][eElevatorName], false)) 
+            continue;
+
+        if(floor >= elevator[elevatorid][eMaxFloor]) 
+            return 1;
 
         doorL_id = elevator[elevatorid][eFloorDoorLObject][floor];
         doorR_id = elevator[elevatorid][eFloorDoorRObject][floor];
+
         return 1;
     }
     return 0;
 }
+
 
 static stock OpenElevatorDoors(elevatorid, floorid)
 {
     new Float:X, 
         Float:Y, 
-        Float:Z
-    ;
+        Float:Z;
 
     GetObjectPos(elevator[elevatorid][eDoorLObject], X, Y, Z);
     MoveObject(elevator[elevatorid][eDoorLObject], elevator[elevatorid][eDoorLOpen_X], elevator[elevatorid][eDoorLOpen_Y], Z, ELEVATOR_DOORS_SPEED);
@@ -551,10 +515,12 @@ static stock OpenElevatorDoors(elevatorid, floorid)
     GetDynamicObjectPos(elevator[elevatorid][eFloorDoorRObject][floorid], X, Y, Z);
     MoveDynamicObject(elevator[elevatorid][eFloorDoorRObject][floorid], elevator[elevatorid][eFloorDoorROpen_X][floorid], elevator[elevatorid][eFloorDoorROpen_Y][floorid], Z, ELEVATOR_DOORS_SPEED);
 
+
     elevator[elevatorid][eClosingTime] = GetTickCount() + ELEVATOR_DOOR_CLOSING_TIME;
     elevator[elevatorid][eDoorStatus] = ELEVATOR_DOOR_OPENS;
     return 1;
 }
+
 
 static stock ClosedElevatorDoors(elevatorid, floorid)
 {
@@ -563,10 +529,10 @@ static stock ClosedElevatorDoors(elevatorid, floorid)
         elevator[elevatorid][eMoveDelay] = GetTickCount() + 2000;
         return 1;
     }
+
     new Float:X, 
         Float:Y, 
-        Float:Z
-    ;
+        Float:Z;
 
     GetObjectPos(elevator[elevatorid][eDoorLObject], X, Y, Z);
     MoveObject(elevator[elevatorid][eDoorLObject], elevator[elevatorid][eDoorLClosed_X], elevator[elevatorid][eDoorLClosed_Y], Z, ELEVATOR_DOORS_SPEED);
@@ -581,17 +547,18 @@ static stock ClosedElevatorDoors(elevatorid, floorid)
     GetDynamicObjectPos(elevator[elevatorid][eFloorDoorRObject][floorid], X, Y, Z);
     MoveDynamicObject(elevator[elevatorid][eFloorDoorRObject][floorid], elevator[elevatorid][eFloorDoorRClosed_X][floorid], elevator[elevatorid][eFloorDoorRClosed_Y][floorid], Z, ELEVATOR_DOORS_SPEED);
 
+
     elevator[elevatorid][eClosingTime] = 0;
     elevator[elevatorid][eDoorStatus] = ELEVATOR_DOOR_CLOSING;
     return 1;
 }
 
+
 static stock ElevatorMoveToFloor(elevatorid, next_floor)
 {
     new Float:X, 
         Float:Y, 
-        Float:Z
-    ;
+        Float:Z;
 
     GetObjectPos(elevator[elevatorid][eCabinObject], X, Y, Z);
     MoveObject(elevator[elevatorid][eCabinObject], X, Y, elevator[elevatorid][eFloor_Z][next_floor]+elevator[elevatorid][eFloorDoorHeight][next_floor]-0.06, ELEVATOR_SPEED);
@@ -610,26 +577,32 @@ static stock ElevatorMoveToFloor(elevatorid, next_floor)
     return 1;
 }
 
+
 static stock IsFloorInQueue(elevatorid, floor)
 {
     for(new queue; queue < elevator[elevatorid][eMaxFloor]; queue ++)
     {
-        if(elevator[elevatorid][eFloorQueue][queue] == 0) continue;
-        if(elevator[elevatorid][eFloorQueue][queue] != floor+1) continue;
+        if(elevator[elevatorid][eFloorQueue][queue] == 0) 
+            continue;
+
+        if(elevator[elevatorid][eFloorQueue][queue] != floor+1) 
+            continue;
 
         return 1;
     }
     return 0;
 }
 
+
 static stock RemoveFirstQueueFloor(elevatorid)
 {
     new max_queue, 
-        floor[ELEVATOR_MAX_FLOORS]
-    ;
+        floor[ELEVATOR_MAX_FLOORS];
+
     for(new queue; queue < elevator[elevatorid][eMaxFloor]; queue ++)
     {
-        if(elevator[elevatorid][eFloorQueue][queue] == 0) continue;
+        if(elevator[elevatorid][eFloorQueue][queue] == 0) 
+            continue;
 
         floor[max_queue] = elevator[elevatorid][eFloorQueue][queue];
         elevator[elevatorid][eFloorQueue][queue] = 0;
@@ -644,6 +617,7 @@ static stock RemoveFirstQueueFloor(elevatorid)
     return 1;
 }
 
+
 #if defined _inc_y_hooks || defined _INC_y_hooks
 	hook OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 #else
@@ -654,12 +628,15 @@ static stock RemoveFirstQueueFloor(elevatorid)
     {
         new elevatorid = -1,
             type,
-            floor
-        ;
+            floor;
+            
         for(new x; x < max_elevator; x ++)
         {
-            if(elevator[x][eCreate] == false) continue;
-            if(elevator[x][eMaxFloor] == 0) continue;
+            if(elevator[x][eCreate] == false) 
+                continue;
+
+            if(elevator[x][eMaxFloor] == 0) 
+                continue;
 
             if(IsPlayerInRangeOfPoint(playerid, 1.1, elevator[x][Text3DCabin_x], elevator[x][Text3DCabin_y], elevator[x][Text3DCabin_z]))
             {
@@ -672,7 +649,8 @@ static stock RemoveFirstQueueFloor(elevatorid)
 
             for(new floor_id; floor_id < elevator[x][eMaxFloor]; floor_id ++)
             {
-                if(!IsPlayerInRangeOfPoint(playerid, 1.0, elevator[x][eFloor_X][floor_id], elevator[x][eFloor_Y][floor_id], elevator[x][eFloor_Z][floor_id])) continue;
+                if(!IsPlayerInRangeOfPoint(playerid, 1.0, elevator[x][eFloor_X][floor_id], elevator[x][eFloor_Y][floor_id], elevator[x][eFloor_Z][floor_id])) 
+                    continue;
                 
                 elevatorid = x;
                 floor = floor_id;
@@ -687,7 +665,9 @@ static stock RemoveFirstQueueFloor(elevatorid)
         {
             if(type == 0)
             {
-                if(elevator[elevatorid][eNextFloor] != -1) return 1;
+                if(elevator[elevatorid][eNextFloor] != -1) 
+                    return 1;
+
                 player_elevator_id[playerid] = elevatorid;
                 
                 new string[(8+9+ELEVATOR_MAX_NAME_LENGTH) * ELEVATOR_MAX_FLOORS],
@@ -709,6 +689,7 @@ static stock RemoveFirstQueueFloor(elevatorid)
                 return 1;
             }
 
+
             if(elevator[elevatorid][eNextFloor] != -1 || elevator[elevatorid][eClosingTime] != 0 && elevator[elevatorid][eFloor] != floor)
             {
                 if(elevator[elevatorid][eNextFloor] != floor)
@@ -717,7 +698,8 @@ static stock RemoveFirstQueueFloor(elevatorid)
 
                     for(new queue; queue < elevator[elevatorid][eMaxFloor]; queue ++)
                     {
-                        if(elevator[elevatorid][eFloorQueue][queue] != 0) continue;
+                        if(elevator[elevatorid][eFloorQueue][queue] != 0) 
+                            continue;
 
                         elevator[elevatorid][eFloorQueue][queue] = floor+1;
                         break;
@@ -729,7 +711,12 @@ static stock RemoveFirstQueueFloor(elevatorid)
                 return 1;
             }
 
-            if(elevator[elevatorid][eDoorStatus] != ELEVATOR_DOOR_CLOSED) return 1;
+
+            if(elevator[elevatorid][eDoorStatus] != ELEVATOR_DOOR_CLOSED) 
+                return 1;
+
+            if(elevator[elevatorid][eTimer] == 0) elevator[elevatorid][eTimer] = SetTimerEx("on_elevator_timer", ELEVATOR_UPDATE_TIMER, true, "d", elevatorid);
+
             if(elevator[elevatorid][eFloor] == floor) 
             {
                 OpenElevatorDoors(elevatorid, floor);
@@ -769,11 +756,11 @@ static stock RemoveFirstQueueFloor(elevatorid)
     DialogResponse:elevator_floors(playerid, response, listitem, inputtext[])
 #else
 
-#if defined _inc_y_hooks || defined _INC_y_hooks
-    hook OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
-#else
-    public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
-#endif
+    #if defined _inc_y_hooks || defined _INC_y_hooks
+        hook OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+    #else
+        public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+    #endif
 
 #endif
 {
@@ -781,10 +768,15 @@ static stock RemoveFirstQueueFloor(elevatorid)
         if(dialogid == ELEVATOR_DIALOG_ID)
         {
     #endif
-            if(!response || listitem < 0 || listitem >= ELEVATOR_MAX_FLOORS) return 1;
+            if(!response || listitem < 0 || listitem >= ELEVATOR_MAX_FLOORS) 
+                return 1;
 
             new elevatorid = player_elevator_id[playerid];
-            if(elevator[elevatorid][eNextFloor] != -1) return 1;
+
+            if(elevator[elevatorid][eNextFloor] != -1) 
+                return 1;
+
+            if(elevator[elevatorid][eTimer] == 0) elevator[elevatorid][eTimer] = SetTimerEx("on_elevator_timer", ELEVATOR_UPDATE_TIMER, true, "d", elevatorid);    
 
             if(elevator[elevatorid][eFloor] == listitem)
             {
@@ -811,6 +803,7 @@ static stock RemoveFirstQueueFloor(elevatorid)
     #else
         #define _ALS_OnDialogResponse
     #endif
+
     #define OnDialogResponse OnDialogResponse_elevator
     #if defined OnDialogResponse_elevator
         forward OnDialogResponse_elevator(playerid, dialogid, response, listitem, inputtext[]);
@@ -829,8 +822,11 @@ static stock RemoveFirstQueueFloor(elevatorid)
     {
         for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
         {
-            if(elevator[elevatorid][eCreate] == false) continue;
-            if(elevator[elevatorid][eDoorLObject] != objectid) continue;
+            if(elevator[elevatorid][eCreate] == false) 
+                continue;
+
+            if(elevator[elevatorid][eDoorLObject] != objectid) 
+                continue;
 
             if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_CLOSED && elevator[elevatorid][eNextFloor] != -1)
             {
@@ -843,14 +839,18 @@ static stock RemoveFirstQueueFloor(elevatorid)
                 {
                     for(new queue; queue < elevator[elevatorid][eMaxFloor]; queue ++)
                     {
-                        if(elevator[elevatorid][eFloorQueue][queue] == 0) continue;
-                        if(elevator[elevatorid][eFloorQueue][queue] != elevator[elevatorid][eFloor]+1) continue;
+                        if(elevator[elevatorid][eFloorQueue][queue] == 0) 
+                            continue;
+
+                        if(elevator[elevatorid][eFloorQueue][queue] != elevator[elevatorid][eFloor]+1) 
+                            continue;
 
                         elevator[elevatorid][eFloorQueue][queue] = 0;
                         RemoveFirstQueueFloor(elevatorid);
                         break;
                     }
                 }
+
                 #if defined OnElevatorArrivedFloor
                     OnElevatorArrivedFloor(elevator[elevatorid][eElevatorName], elevator[elevatorid][eFloor]);
                 #endif
@@ -873,6 +873,12 @@ static stock RemoveFirstQueueFloor(elevatorid)
 
                         elevator[elevatorid][eFloorQueue][0] = 0;
                         RemoveFirstQueueFloor(elevatorid);
+                    }
+                    else if(elevator[elevatorid][eTimer] != 0)
+                    {
+                        KillTimer(elevator[elevatorid][eTimer]);
+                        elevator[elevatorid][eTimer] = 0;
+                        SendClientMessageToAll(-1, "Kill");
                     }
                 }
             }
@@ -904,74 +910,77 @@ static stock RemoveFirstQueueFloor(elevatorid)
 #endif
 
 
-forward on_elevator_time();
-public on_elevator_time()
+
+forward on_elevator_timer(elevatorid);
+public on_elevator_timer(elevatorid)
 {
-    #if ELEVATOR_ENABLE_DIGITAL_DISPLAY
+    if(elevator[elevatorid][eCreate] == false) return 1;
+
+
+    #if defined ELEVATOR_ENABLE_DIGITAL_DISPLAY
         new Float:X, 
             Float:Y, 
             Float:Z;
+       
+        if(elevator[elevatorid][eNextFloor] != -1)
+        {
+            GetObjectPos(elevator[elevatorid][eCabinObject], X, Y, Z);
+
+            for(new floor; floor < elevator[elevatorid][eMaxFloor]; floor ++)
+            {   
+                if(Z <= elevator[elevatorid][eFloor_Z][floor]-1.5 || elevator[elevatorid][eFloor_Z][floor]+2.0 <= Z) 
+                    continue;
+
+                if(elevator[elevatorid][eCurrentFloor] == floor) 
+                    break;
+
+                elevator[elevatorid][eCurrentFloor] = floor;
+                elevator[elevatorid][eTotalObjectUpdatesFloor] ++;
+
+                if(elevator[elevatorid][eTotalObjectUpdatesFloor] >= 6) // FIXED: Text does not update after 16 calls against the same object.
+                {
+                    DestroyObject(elevator[elevatorid][eCabinDigitalDisplayObject]);
+                    elevator[elevatorid][eTotalObjectUpdatesFloor] = 0;
+                    
+                    elevator[elevatorid][eCabinDigitalDisplayObject] = CreateObject(19476, X, Y, Z, 0.0, 0.0, 0.0, 10.0);
+                    AttachObjectToObject(elevator[elevatorid][eCabinDigitalDisplayObject], elevator[elevatorid][eCabinObject], -1.75, 0.0, 1.175, 0.0, 0.0, 0.0);
+                }
+
+                SetObjectMaterialText(elevator[elevatorid][eCabinDigitalDisplayObject], elevator_text_digital_display[elevatorid][floor], 0, 80, "Arial Black", 60, 1, 0xFFFFFFFF, 0x00000000, 1); 
+                break;
+            }
+        }
     #endif
 
-    for(new elevatorid; elevatorid < max_elevator; elevatorid ++)
+
+    if(elevator[elevatorid][eMoveDelay] != 0 && elevator[elevatorid][eMoveDelay] <= GetTickCount())
     {
-        if(elevator[elevatorid][eCreate] == false) continue;
-
-        #if ELEVATOR_ENABLE_DIGITAL_DISPLAY
-            if(elevator[elevatorid][eNextFloor] != -1)
-            {
-                GetObjectPos(elevator[elevatorid][eCabinObject], X, Y, Z);
-
-                for(new floor; floor < elevator[elevatorid][eMaxFloor]; floor ++)
-                {   
-                    if(Z <= elevator[elevatorid][eFloor_Z][floor]-1.5 || elevator[elevatorid][eFloor_Z][floor]+2.0 <= Z) continue;
-                    if(elevator[elevatorid][eCurrentFloor] == floor) break;
-
-                    elevator[elevatorid][eCurrentFloor] = floor;
-                    elevator[elevatorid][eTotalObjectUpdatesFloor] ++;
-
-                    if(elevator[elevatorid][eTotalObjectUpdatesFloor] >= 6) // FIXED: Text does not update after 16 calls against the same object.
-                    {
-                        DestroyObject(elevator[elevatorid][eCabinDigitalDisplayObject]);
-                        elevator[elevatorid][eTotalObjectUpdatesFloor] = 0;
-                        
-                        elevator[elevatorid][eCabinDigitalDisplayObject] = CreateObject(19476, X, Y, Z, 0.0, 0.0, 0.0, 10.0);
-                        AttachObjectToObject(elevator[elevatorid][eCabinDigitalDisplayObject], elevator[elevatorid][eCabinObject], -1.75, 0.0, 1.175, 0.0, 0.0, 0.0);
-                    }
-
-                    SetObjectMaterialText(elevator[elevatorid][eCabinDigitalDisplayObject], elevator_text_digital_display[elevatorid][floor], 0, 80, "Arial Black", 60, 1, 0xFFFFFFFF, 0x00000000, 1); 
-                    break;
-                }
-            }
-        #endif
-
-        if(elevator[elevatorid][eMoveDelay] != 0 && elevator[elevatorid][eMoveDelay] <= GetTickCount())
+        elevator[elevatorid][eMoveDelay] = 0;
+        if(elevator[elevatorid][eFloor] == elevator[elevatorid][eNextFloor])
         {
-            elevator[elevatorid][eMoveDelay] = 0;
-            if(elevator[elevatorid][eFloor] == elevator[elevatorid][eNextFloor])
-            {
-                OpenElevatorDoors(elevatorid, elevator[elevatorid][eNextFloor]);
+            OpenElevatorDoors(elevatorid, elevator[elevatorid][eNextFloor]);
 
-                elevator[elevatorid][eText3DCabin] = CreateDynamic3DTextLabel(ELEVATOR_CABIN_TEXT, -1, elevator[elevatorid][Text3DCabin_x], elevator[elevatorid][Text3DCabin_y], elevator[elevatorid][Text3DCabin_z]-0.5, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, 1, -1, -1, -1, 10.0);
-                
-                elevator[elevatorid][eNextFloor] = -1;
-            }
-            else 
-            {
-                ElevatorMoveToFloor(elevatorid, elevator[elevatorid][eNextFloor]);
-
-                #if defined OnElevatorMoveToFloor
-                    OnElevatorMoveToFloor(elevator[elevatorid][eElevatorName], elevator[elevatorid][eFloor], elevator[elevatorid][eNextFloor]);
-                #endif
-            }
+            elevator[elevatorid][eText3DCabin] = CreateDynamic3DTextLabel(ELEVATOR_CABIN_TEXT, -1, elevator[elevatorid][Text3DCabin_x], elevator[elevatorid][Text3DCabin_y], elevator[elevatorid][Text3DCabin_z]-0.5, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, 1, -1, -1, -1, 10.0);
+            
+            elevator[elevatorid][eNextFloor] = -1;
         }
-        else if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_OPEN && elevator[elevatorid][eClosingTime] != 0 && elevator[elevatorid][eClosingTime] <= GetTickCount())
+        else 
         {
-            elevator[elevatorid][eClosingTime] = 0;
-            ClosedElevatorDoors(elevatorid, elevator[elevatorid][eFloor]);
+            ElevatorMoveToFloor(elevatorid, elevator[elevatorid][eNextFloor]);
+
+            #if defined OnElevatorMoveToFloor
+                OnElevatorMoveToFloor(elevator[elevatorid][eElevatorName], elevator[elevatorid][eFloor], elevator[elevatorid][eNextFloor]);
+            #endif
         }
-        else continue;
     }
+    else if(elevator[elevatorid][eDoorStatus] == ELEVATOR_DOOR_OPEN && elevator[elevatorid][eClosingTime] != 0 && elevator[elevatorid][eClosingTime] <= GetTickCount())
+    {
+        elevator[elevatorid][eClosingTime] = 0;
+        ClosedElevatorDoors(elevatorid, elevator[elevatorid][eFloor]);
+    }
+
+
     return 1;
 }
+
 

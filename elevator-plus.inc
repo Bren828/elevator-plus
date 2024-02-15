@@ -878,7 +878,6 @@ static stock RemoveFirstQueueFloor(elevatorid)
                     {
                         KillTimer(elevator[elevatorid][eTimer]);
                         elevator[elevatorid][eTimer] = 0;
-                        SendClientMessageToAll(-1, "Kill");
                     }
                 }
             }

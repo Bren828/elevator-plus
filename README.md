@@ -57,7 +57,7 @@ public OnGameModeInit()
 ```
 ## Functions
 
-#### CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
+#### CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1)
 > Create an elevator
 > * `elevator_name[]` - Elevator name
 > * `Float:x` - The x coordinate to create the object
@@ -66,6 +66,8 @@ public OnGameModeInit()
 > * `Float:rx` - The rx rotation of the object
 > * `Float:ry` - The ry rotation of the object
 > * `Float:rz` - The rz rotation of the object
+> * `worldid` - The virtual world ID
+> * `interiorid` - The interior ID
 
 
 #### CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
@@ -129,7 +131,7 @@ public OnGameModeInit()
 
 #define ELEVATOR_SPEED                          3.0 // movement speed of the elevator
 
-#define ELEVATOR_UPDATE_TIMER                   900
+#define ELEVATOR_UPDATE_TIMER                   500
 
 #define ELEVATOR_DOOR_CLOSING_TIME              8000 // milliseconds
 
@@ -152,5 +154,11 @@ static ELEVATOR_TEXT_ALREADY_IN_QUEUE[] =       "{AFAFAF}The floor is already in
 static ELEVATOR_TEXT_CALLED[] =                 "Elevator called";
 
 static ELEVATOR_FLOOR_COLOR_NOW[] =             "{65cd38}";
+
+static ELEVATOR_DIALOG_CAPTION[] =             "Select floor";
+
+static ELEVATOR_DIALOG_BUTTON1[] =             "Select";
+
+static ELEVATOR_DIALOG_BUTTON2[] =             "Close";
 ```
 

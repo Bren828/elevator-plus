@@ -56,6 +56,8 @@ public OnGameModeInit()
 }
 ```
 ## Functions
+<details>
+<summary>Click to expand the list</summary>
 
 #### CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1)
 > Create an elevator
@@ -103,8 +105,11 @@ public OnGameModeInit()
 > * `&doorL_id` - Left door id
 > * `&doorR_id` - Right door id
 > * `Note` - **CreateDynamicObject is used**
+</details>
 
 ## Callbacks
+<details>
+<summary>Click to expand the list</summary>
 
 #### public OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
 > Called when moving to a floor
@@ -116,9 +121,11 @@ public OnGameModeInit()
 > Called when the elevator arrives
 > * `elevator_name[]` - Elevator name
 > * `floor` - Floor number
-
+</details>
 
 ## Definition
+<details>
+<summary>Click to expand the list</summary>
 
 ```pawn
 #define ELEVATOR_MAX_ELEVATOR                   10
@@ -161,4 +168,4 @@ static ELEVATOR_DIALOG_BUTTON1[] =             "Select";
 
 static ELEVATOR_DIALOG_BUTTON2[] =             "Close";
 ```
-
+</details>

@@ -1,22 +1,15 @@
 # Elevator Plus
 
-Creating an elevator in 5 minutes in SAMP
+Elevator Plus - a lightweight and feature-rich library for SA-MP to create elevator systems with digital displays and floor queues in minutes.
 
-![Crosshair](https://raw.githubusercontent.com/Bren828/elevator-plus/main/preview.png)
-
-
-## Main features
-* Digital display
-* Call queue
-* Compatibility `mdialog`, `y_hooks`
+![Crosshair](preview.png)
 
 ## Reference
-* [Installation](https://github.com/Bren828/elevator-plus#installation)
-* [Example](https://github.com/Bren828/elevator-plus#example)
-* [Functions](https://github.com/Bren828/elevator-plus#functions)
-* [Callbacks](https://github.com/Bren828/elevator-plus#callbacks)
-* [Definition](https://github.com/Bren828/elevator-plus#definition)
-
+* [Installation](#installation)
+* [Example](#example)
+* [Functions](#functions)
+* [Callbacks](#callbacks)
+* [Definition](#definition)
 
 ## Installation
 
@@ -28,8 +21,8 @@ Include in your code and begin using the library:
 ## Example
 
 ```pawn
-public OnGameModeInit()
-{
+public OnGameModeInit() {
+
     // Create an elevator
     CreateElevator("ls_beach_building", 287.942504, -1609.334838, 33.827411, 0.0, 0.0, 80.0);
 
@@ -59,9 +52,9 @@ public OnGameModeInit()
 <details>
 <summary>Click to expand the list</summary>
 
-#### CreateElevator(const elevator_name[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1)
+#### CreateElevator(const elevatorName[], Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1)
 > Create an elevator
-> * `elevator_name[]` - Elevator name
+> * `elevatorName[]` - Elevator name
 > * `Float:x` - The x coordinate to create the object
 > * `Float:y` - The y coordinate to create the object
 > * `Float:z` - The z coordinate to create the object
@@ -71,39 +64,36 @@ public OnGameModeInit()
 > * `worldid` - The virtual world ID
 > * `interiorid` - The interior ID
 
-
-#### CreateElevatorFloor(const elevator_name[], Float:x, Float:y, Float:z, Float:door_height = 0.0, const text_dialog[] = "", const text_digital_display[] = "")
-> Create a floor with a call button
-> * `elevator_name[]` - Elevator name
+#### CreateElevatorFloor(const elevatorName[], Float:x, Float:y, Float:z, Float:z_offset = 0.0, const dialogText[] = "", const displayText[] = "")
+> Adds a floor to an elevator, including a call button and floor doors.
+> * `elevatorName[]` - Elevator name
 > * `Float:x` - The x coordinate
 > * `Float:y` - The y coordinate
 > * `Float:z` - The z coordinate
-> * `Float:door_height` - Door height
-> * `text_dialog[]` - Name in the list of floors
-> * `text_digital_display[]` - Displays the floor number
+> * `Float:z_offset` - Z offset for the floor
+> * `dialogText[]` - Name in the list of floors
+> * `displayText[]` - Displays the floor number
 
-
-#### SetElevatorFloor(const elevator_name[], floor)
+#### SetElevatorFloor(const elevatorName[], floor)
 > Move the elevator to a floor
-> * `elevator_name[]` - Elevator name
+> * `elevatorName[]` - Elevator name
 > * `floor` - Floor number
 
-
-#### GetElevatorObjectID(const elevator_name[], &cabin_id, &doorL_id, &doorR_id, &digital_display_id)
+#### GetElevatorCabinObjectID(const elevatorName[], &cabinID, &leftDoorID, &rightDoorID, &displayID)
 > Get the elevator object id
-> * `elevator_name[]` - Elevator name
-> * `&cabin_id` - Elevator cab id
-> * `&doorL_id` - Left door id
-> * `&doorR_id` - Right door id
-> * `&digital_display_id` - Digital display id
+> * `elevatorName[]` - Elevator name
+> * `&cabinID` - Elevator cab id
+> * `&leftDoorID` - Left door id
+> * `&rightDoorID` - Right door id
+> * `&displayID` - Digital display id
 > * `Note` - **CreateObject is used**
 
-#### GetElevatorFloorDoorObjectID(const elevator_name[], floor, &doorL_id, &doorR_id)
+#### GetElevatorFloorDoorID(const elevatorName[], floor, &leftDoorID, &rightDoorID)
 > Get the ID of the floor doors object
-> * `elevator_name[]` - Elevator name
+> * `elevatorName[]` - Elevator name
 > * `floor` - Floor number
-> * `&doorL_id` - Left door id
-> * `&doorR_id` - Right door id
+> * `&leftDoorID` - Left door id
+> * `&rightDoorID` - Right door id
 > * `Note` - **CreateDynamicObject is used**
 </details>
 
@@ -111,15 +101,15 @@ public OnGameModeInit()
 <details>
 <summary>Click to expand the list</summary>
 
-#### public OnElevatorMoveToFloor(const elevator_name[], old_floor, new_floor)
-> Called when moving to a floor
-> * `elevator_name[]` - Elevator name
-> * `old_floor` - Old floor
-> * `new_floor` - New floor
+#### public OnElevatorMoveToFloor(const elevatorName[], oldFloor, newFloor)
+> Triggered when the elevator starts moving towards a destination floor. 
+> * `elevatorName[]` - Elevator name
+> * `oldFloor` - Old floor
+> * `newFloor` - New floor
 
-#### public OnElevatorArrivedFloor(const elevator_name[], floor)
-> Called when the elevator arrives
-> * `elevator_name[]` - Elevator name
+#### public OnElevatorArrivedFloor(const elevatorName[], floor)
+> Triggered when the elevator finishes moving and arrives at the floor.
+> * `elevatorName[]` - Elevator name
 > * `floor` - Floor number
 </details>
 
@@ -128,44 +118,27 @@ public OnGameModeInit()
 <summary>Click to expand the list</summary>
 
 ```pawn
-#define ELEVATOR_MAX_ELEVATOR                   10
+#define ELEVATOR_MAX_ELEVATORS 10
+#define ELEVATOR_MAX_FLOORS 30
+#define ELEVATOR_NAME_LENGTH 32
+#define ELEVATOR_DOOR_SPEED 3.0 // movement speed of the doors
+#define ELEVATOR_CABIN_SPEED 3.0 // movement speed of the elevator
+#define ELEVATOR_TIMER_INTERVAL 500 
+#define ELEVATOR_DOOR_CLOSE_DELAY 8000 // milliseconds
+#define ELEVATOR_OBJECT_DISTANCE 100.0
+#define ELEVATOR_DISABLE_DISPLAY
+#define ELEVATOR_DIALOG_ID 27303
+#define ELEVATOR_CHAT_MESSAGE_COLOR 0xFFFFFFAA
 
-#define ELEVATOR_MAX_FLOORS                     30
-
-#define ELEVATOR_MAX_NAME_LENGTH                32
-
-#define ELEVATOR_DOORS_SPEED                    3.0 // movement speed of the doors
-
-#define ELEVATOR_SPEED                          3.0 // movement speed of the elevator
-
-#define ELEVATOR_UPDATE_TIMER                   500
-
-#define ELEVATOR_DOOR_CLOSING_TIME              8000 // milliseconds
-
-#define ELEVATOR_OBJECT_DISTANCE                100.0
-
-#define ELEVATOR_ENABLE_DIGITAL_DISPLAY
-
-#define ELEVATOR_DIALOG_ID                      27303
-
-static ELEVATOR_CABIN_TEXT[] =                  "{CCCCCC}~k~~SNEAK_ABOUT~";
-
-static ELEVATOR_FLOOR_TEXT[] =                  "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}";
-
-static ELEVATOR_FLOOR_IN_DIALOG_TEXT[] =        "Floor %d";
-
-static ELEVATOR_TEXT_COMING_TO_YOU[] =          "{AFAFAF}Already coming to you";
-
-static ELEVATOR_TEXT_ALREADY_IN_QUEUE[] =       "{AFAFAF}The floor is already in the queue";
-
-static ELEVATOR_TEXT_CALLED[] =                 "Elevator called";
-
-static ELEVATOR_FLOOR_COLOR_NOW[] =             "{65cd38}";
-
-static ELEVATOR_DIALOG_CAPTION[] =             "Select floor";
-
-static ELEVATOR_DIALOG_BUTTON1[] =             "Select";
-
-static ELEVATOR_DIALOG_BUTTON2[] =             "Close";
+new const ELEVATOR_TEXT_CABIN[] = "{CCCCCC}~k~~SNEAK_ABOUT~";
+new const ELEVATOR_TEXT_FLOOR_CALL[] = "Call the elevator\n{CCCCCC}~k~~SNEAK_ABOUT~{FFFFFF}";
+new const ELEVATOR_TEXT_FLOOR_DIALOG[] = "Floor %d";
+new const ELEVATOR_TEXT_COMING[] = "{AFAFAF}Already coming to you";
+new const ELEVATOR_TEXT_QUEUED[] = "{AFAFAF}The floor is already in the queue";
+new const ELEVATOR_TEXT_CALLED[] = "Elevator called";
+new const ELEVATOR_TEXT_FLOOR_COLOR[] = "{65cd38}";
+new const ELEVATOR_DIALOG_TITLE[] = "Select floor";
+new const ELEVATOR_DIALOG_BUTTON1[] = "Select";
+new const ELEVATOR_DIALOG_BUTTON2[] = "Close";
 ```
 </details>

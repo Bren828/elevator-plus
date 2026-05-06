@@ -4,8 +4,8 @@
 *
 *   ---------------------------------------------------
 *
-*	Creater - @Bren828 					
-*									29 June 2023
+*	Created by Bren828					
+*									06 May 2026
 *
 *   Version: 1.0
 *
@@ -19,8 +19,8 @@
 */
 
 
-public OnGameModeInit()
-{
+public OnGameModeInit() {
+    
     // Create an elevator
     CreateElevator("ls_beach_building", 287.942504, -1609.334838, 33.827411, 0.0, 0.0, 80.0);
 

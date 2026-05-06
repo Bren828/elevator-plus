@@ -4,8 +4,8 @@
 *
 *   ---------------------------------------------------
 *
-*	Creater - @Bren828 					
-*									29 June 2023
+*	Created by Bren828					
+*									06 May 2026
 *
 *   Version: 1.0
 *
@@ -19,8 +19,8 @@
 */
 
 
-public OnGameModeInit()
-{
+public OnGameModeInit() {
+    
     // Create an elevator
     CreateElevator("ls_office_building", 1786.678100, -1303.459472, 14.570999, 0.0, 0.0, 270.0);
 
